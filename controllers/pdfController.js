@@ -2,6 +2,7 @@ const PDFDocument = require('pdfkit');
 
 // Helpers
 const { getCurrentDate, getEmployeeAge } = require("../helpers/dateHelpers");
+const { dataToArray } = require("../helpers/arrayHelper");
 
 const generatePdf = async (req, res) => {
   try {
@@ -70,12 +71,14 @@ const generatePdf = async (req, res) => {
     .fontSize(14)
     .font('Helvetica-Bold')
     .text(` `, { paragraphGap: 30 })
-    .text(`HABILIDADES`, { align: "left" });
+    .text(`HABILIDADES`, { align: "left", paragraphGap: 1 });
 
-    doc
-    .fontSize(12)
-    .font('Helvetica')
-    .text(`${data.skills}`, { align: "left" });
+    dataToArray(data.skills).forEach((skill) => {
+      doc
+      .fontSize(12)
+      .font('Helvetica')
+      .text(`- ${skill}`, { align: "left" });
+    })
 
     doc
     .fontSize(14)
@@ -83,13 +86,13 @@ const generatePdf = async (req, res) => {
     .text(` `, { paragraphGap: 30 })
     .text(`IDIOMAS`, { align: "left" });
 
-    doc
-    .fontSize(12)
-    .font('Helvetica')
-    .text(`${data.languages}`, { align: "left" });
-  
-
-    
+    dataToArray(data.languages).forEach((language) => {
+      doc
+      .fontSize(12)
+      .font('Helvetica')
+      .text(`- ${language}`, { align: "left" });
+    })
+      
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="generated.pdf"');
 
