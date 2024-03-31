@@ -1,4 +1,5 @@
 const PDFDocument = require('pdfkit');
+const fs = require('fs');
 
 // Helpers
 const { getCurrentDate, getEmployeeAge } = require("../helpers/dateHelpers");
@@ -16,10 +17,28 @@ const generatePdf = async (req, res) => {
     
     doc.info.Title = `${data.name} ${data.lastname} - ${getCurrentDate().fullDate}`;
 
-    doc
-      .fontSize(20)
-      .font('Helvetica-Bold')
-      .text(`${data.name} ${data.lastname}`, { paragraphGap: 10 });
+    const base64Image = data.profilePic;
+
+    if(base64Image) {
+      const imageData = base64Image.split(';base64,').pop();
+      
+      doc.image(Buffer.from(imageData, 'base64'), {
+        width: 75,
+        height: 125,
+      });
+
+      doc
+        .fontSize(20)
+        .font('Helvetica-Bold')
+        .text(`${data.name} ${data.lastname}`, 170, 70, { paragraphGap: 10 });
+    }
+    else {
+      doc
+        .fontSize(20)
+        .font('Helvetica-Bold')
+        .text(`${data.name} ${data.lastname}`, { paragraphGap: 10 });
+    }
+
 
     doc
       .fontSize(12)
@@ -34,7 +53,7 @@ const generatePdf = async (req, res) => {
     doc
     .fontSize(14)
     .font('Helvetica-Bold')
-    .text(`FORMAÇÃO ACADÊMICA`, { paragraphGap: 8, align: "left" });
+    .text(`FORMAÇÃO ACADÊMICA`, 70, 230, { paragraphGap: 8, align: "left" });
 
     data.education.forEach((education) => {
       doc
@@ -48,11 +67,6 @@ const generatePdf = async (req, res) => {
     .font('Helvetica-Bold')
     .text(` `, { paragraphGap: 30 })
     .text(`EXPERIÊNCIA PROFISISONAL`, { align: "left" });
-
-    // doc
-    //   .moveTo(72, 315)
-    //   .lineTo(550, 315)      
-    //   .stroke();
 
     data.experiences.forEach((experience) => {
       doc
@@ -106,5 +120,39 @@ const generatePdf = async (req, res) => {
   }
 }
 
+const uploadImg = async (req, res) => {
+  try {
+    const { image } = req.body;
 
-module.exports = { generatePdf }
+    console.log(image);
+
+    if(!image) {
+      return res.status(400).json({ message: "Algo deu errado..." });
+    }
+
+    const imageData = image.split(';base64,').pop();
+    const imageName = `image_${Date.now()}.png`;
+    const imagePath = `/public/imgs/${imageName}`;
+
+    // fs.writeFile(imagePath, imageData, { encoding: 'base64' }, (err) => {
+    //   if(err) {
+    //     console.error('Error saving image:', err);
+    //     return res.status(500).send('Error saving image');
+    //   }
+    //   else {
+    //     console.log('Image saved successfully:', imageName);
+    //     return res.status(200).json({img: imageData});
+    //   }
+    // });
+
+    
+
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Algo deu errado, tente novamente mais tarde..." })
+  }
+}
+
+
+module.exports = { generatePdf, uploadImg }
